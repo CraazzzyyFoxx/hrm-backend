@@ -1,7 +1,7 @@
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, String, Text, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.core import db
+from src.core import db, enums
 
 __all__ = (
     "User",
@@ -21,6 +21,8 @@ class User(db.TimeStampMixin):
     is_verified_email: Mapped[bool] = mapped_column(default=False)
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
+    phone_number: Mapped[str] = mapped_column(String(100))
+    search_status: Mapped[enums.SearchStatus] = mapped_column(Enum(enums.SearchStatus))
 
 
 class RefreshToken(db.TimeStampMixin):

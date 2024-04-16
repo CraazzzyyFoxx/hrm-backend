@@ -1,10 +1,9 @@
-import re
-import typing
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic_extra_types.phone_numbers import PhoneNumber
 
-from src.core import config
+from src.core import enums
 
 __all__ = (
     "UserRead",
@@ -28,6 +27,8 @@ class UserRead(BaseModel):
 
     first_name: str
     last_name: str
+    phone_number: str
+    search_status: enums.SearchStatus
 
     created_at: datetime
 
@@ -35,6 +36,7 @@ class UserRead(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
+    phone_number: PhoneNumber
 
     first_name: str
     last_name: str
@@ -43,6 +45,7 @@ class UserCreate(BaseModel):
 class BaseUserUpdate(BaseModel):
     password: str | None = Field(default=None)
     email: EmailStr | None = Field(default=None)
+    search_status: enums.SearchStatus | None = Field(default=None)
 
 
 class UserUpdate(BaseUserUpdate):

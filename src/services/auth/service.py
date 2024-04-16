@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 from starlette import status
 
 from src import models, schemas
-from src.core import config, errors
+from src.core import config, errors, enums
 from src.utils import jwt as jwt_utils
 
 from . import utils
@@ -59,10 +59,12 @@ async def create(session: AsyncSession, user_create: schemas.UserCreate, safe: b
     password = user_dict.pop("password")
     user_dict["hashed_password"] = utils.hash_password(password)
     user_dict["email"] = email.lower()
+    user_dict["phone_number"] = user_dict["phone_number"][4:]
+    user_dict["search_status"] = enums.SearchStatus.not_looking
     created_user = models.User(**user_dict)
     session.add(created_user)
     await session.commit()
-    return created_user
+    return await get_by_email(session, user_create.email)
 
 
 async def update(
@@ -301,10 +303,10 @@ async def refresh_tokens(session: AsyncSession, token: str | None) -> tuple[str,
     query = (sa.select(models.User).where(models.User.id == user["id"])).limit(1)
     result = await session.scalars(query)
     user = result.first()
-    tokens = await create_access_token(session, user)
     query = sa.delete(models.RefreshToken).where(models.RefreshToken.token == token)
     await session.execute(query)
     await session.commit()
+    tokens = await create_access_token(session, user)
     return tokens
 
 
@@ -343,3 +345,10 @@ async def write_token_api(session: AsyncSession, user: models.User) -> str:
     await session.execute(query)
     await session.commit()
     return token
+
+
+async def delete_refresh_token(session: AsyncSession, token: str) -> None:
+    query = sa.delete(models.RefreshToken).where(models.RefreshToken.token == token)
+    await session.execute(query)
+    await session.commit()
+    return

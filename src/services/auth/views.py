@@ -30,11 +30,11 @@ async def login(
     token = await service.create_access_token(session, user)
     logger.info(f"User [email={user.email}] has logged in.")
     resp = ORJSONResponse({"access_token": token[0], "refresh_token": token[1], "token_type": "bearer"})
-    resp.set_cookie("refresh_token", token[1])
+    resp.set_cookie("refresh_token", token[1], httponly=True, secure=True)
     return resp
 
 
-@router.post("/register", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("/registration", response_model=schemas.UserRead, status_code=status.HTTP_201_CREATED)
 async def register(
     user_create: schemas.UserCreate,
     session: AsyncSession = Depends(get_async_session),
@@ -82,9 +82,17 @@ async def reset_password(
 
 @router.post("/refresh-token")
 async def refresh_token(request: Request, session=Depends(get_async_session)):
-    logger.info(request.cookies)
     token = request.cookies.get("refresh_token")
     tokens = await service.refresh_tokens(session, token)
     resp = ORJSONResponse({"access_token": tokens[0], "refresh_token": tokens[1], "token_type": "bearer"})
     resp.set_cookie("refresh_token", tokens[1])
+    return resp
+
+
+@router.post("/logout")
+async def logout(request: Request, user=Depends(flows.current_active), session=Depends(get_async_session)):
+    token = request.cookies.get("refresh_token")
+    await service.delete_refresh_token(session, token)
+    resp = ORJSONResponse({"status": "success"})
+    resp.delete_cookie("refresh_token")
     return resp

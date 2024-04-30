@@ -7,21 +7,8 @@ class RouteTag(StrEnum):
     SETTINGS = "⚙️ Settings"
 
     USERS = "🤷🏿‍♀️‍ Users"
-    ORDERS = "📒 Orders"
-    PREORDERS = "📒 Pre Orders"
-    SHEETS = "📊 Google Sheets"
-    RESPONSES = "📩 Responses"
+    BELBIN = "🎭 Belbin"
     AUTH = "🤷🏿‍♀️‍ Auth"
-    MESSAGES = "✉️ Messages"
-    CHANNELS = "✉️ Channels"
-    RENDER = "✉️ Message Render"
-    ACCOUNTING = "📊 Accounting"
-    ADMIN = "🤷🏿‍♀️‍ Admin"
-    CURRENCY = "💰 Currency"
-    ORDER_RENDERS = "📒 Order Renders"
-    SCREENSHOTS = "📷 Screenshots"
-
-    DISCORD_OAUTH = "🤷🏿‍♀️‍ Discord OAuth"
 
 
 class SearchStatus(StrEnum):
@@ -32,3 +19,14 @@ class SearchStatus(StrEnum):
     offer_thinking = "Предложили работу, пока думаю"
     going_new = "Уже выхожу на новое место"
     not_looking = "Не ищу работу"
+
+
+class BelbinRole(StrEnum):
+    chairman = "Председатель"
+    closer = "Доводчик"
+    shaper = "Формирователь"
+    thinker = "Мыслитель"
+    appraiser = "Оценщик"
+    collectivist = "Коллективист"
+    scout = "Разведчик"
+    executor = "Исполнитель"

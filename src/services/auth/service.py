@@ -84,7 +84,6 @@ async def update(
         exclude_unset=exclude,
         mode="json",
     )
-
     if user_in.password:
         user.hashed_password = utils.hash_password(user_in.password)
     query = sa.update(models.User).where(models.User.id == user.id).values(**update_data).returning(models.User)

@@ -43,6 +43,8 @@ class UserCreate(BaseModel):
 
 
 class BaseUserUpdate(BaseModel):
+    first_name: str | None = Field(default=None)
+    last_name: str | None = Field(default=None)
     password: str | None = Field(default=None)
     email: EmailStr | None = Field(default=None)
     search_status: enums.SearchStatus | None = Field(default=None)

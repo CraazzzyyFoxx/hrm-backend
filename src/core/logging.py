@@ -52,7 +52,7 @@ class APILogger:
     ):
         loguru_logger.remove()
         loguru_logger.add(
-            sys.stdout,
+            sys.stderr,
             enqueue=True,
             backtrace=True,
             level=level.upper(),

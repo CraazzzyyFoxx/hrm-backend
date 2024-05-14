@@ -8,8 +8,6 @@ from fastapi.responses import ORJSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.requests import Request
-from starlette.responses import FileResponse
-from starlette.staticfiles import StaticFiles
 
 from src import api
 from src.core import config, db
@@ -82,7 +80,7 @@ async def validation_exception_handler(_: Request, exc: RequestValidationError):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=config.app.cors_origins if config.app.cors_origins else ["http://localhost", "http://localhost:3000", "http://192.168.1.88:3000", "http://home.craazzzyyfoxx.me:3000"],
+    allow_origins=config.app.cors_origins if config.app.cors_origins else ["http://localhost", "http://localhost:3000", "http://192.168.1.88:3000", "http://home.craazzzyyfoxx.me:3000", "http://home.craazzzyyfoxx.me"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "DELETE", "PATCH", "PUT"],
     allow_headers=["*"],

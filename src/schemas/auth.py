@@ -10,9 +10,12 @@ __all__ = (
     "UserCreate",
     "UserUpdate",
     "UserUpdateAdmin",
-
     "BaseUserUpdate",
 )
+
+
+class IPhoneNumber(PhoneNumber):
+    phone_format: str = 'E164'
 
 
 class UserRead(BaseModel):
@@ -27,27 +30,34 @@ class UserRead(BaseModel):
 
     first_name: str
     last_name: str
-    phone_number: str
+    middle_name: str | None
+    phone_number: IPhoneNumber
     search_status: enums.SearchStatus
+    search_region: str | None
 
+    password_changed_at: datetime
     created_at: datetime
 
 
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
-    phone_number: PhoneNumber
+    phone_number: IPhoneNumber
 
     first_name: str
     last_name: str
+    middle_name: str | None
 
 
 class BaseUserUpdate(BaseModel):
     first_name: str | None = Field(default=None)
     last_name: str | None = Field(default=None)
+    middle_name: str | None = Field(default=None)
     password: str | None = Field(default=None)
     email: EmailStr | None = Field(default=None)
     search_status: enums.SearchStatus | None = Field(default=None)
+    phone_number: IPhoneNumber | None = Field(default=None)
+    search_region: str | None = Field(default=None)
 
 
 class UserUpdate(BaseUserUpdate):

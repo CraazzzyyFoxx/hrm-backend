@@ -1,3 +1,4 @@
 from .auth import *
-from .oauth import *
 from .belbin import *
+from .citizenship import *
+from .resume import *

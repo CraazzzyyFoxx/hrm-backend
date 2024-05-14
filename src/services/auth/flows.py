@@ -143,13 +143,12 @@ async def create_first_superuser(session: AsyncSession):
     if not await service.get_first_superuser(session):
         await service.create(
             session,
-            schemas.UserCreate.model_validate(
-                dict(
-                    email=config.app.super_user_email,
-                    password=config.app.super_user_password,
-                    first_name="Юрий",
-                    last_name="Савва",
-                    phone_number="+78005553535",
-                )
+            schemas.UserCreate(
+                email=config.app.super_user_email,
+                password=config.app.super_user_password,
+                first_name="Юрий",
+                last_name="Савва",
+                phone_number="+78005553535",
+                middle_name=None
             )
         )

@@ -1,4 +1,4 @@
-from enum import StrEnum, Enum
+from enum import StrEnum
 
 
 class RouteTag(StrEnum):
@@ -9,6 +9,7 @@ class RouteTag(StrEnum):
     USERS = "🤷🏿‍♀️‍ Users"
     BELBIN = "🎭 Belbin"
     AUTH = "🤷🏿‍♀️‍ Auth"
+    RESUME = "📄 Resume"
 
 
 class SearchStatus(StrEnum):
@@ -30,3 +31,26 @@ class BelbinRole(StrEnum):
     collectivist = "Коллективист"
     scout = "Разведчик"
     executor = "Исполнитель"
+
+
+class Gender(StrEnum):
+    male = "Мужской"
+    female = "Женский"
+
+
+class Busyness(StrEnum):
+    full = "Полная занятость"
+    part = "Частичная занятость"
+    project = "Проектная работа"
+    volunteering = "Волонтерство"
+    internship = "Стажировка"
+
+
+class WorkSchedule(StrEnum):
+    full = "Полный день"
+    shift = "Сменный график"
+    remote = "Удаленная работа"
+    flexible = "Гибкий график"
+    duty = "Вахтовый метод"
+
+

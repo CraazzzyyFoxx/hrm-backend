@@ -1,4 +1,6 @@
-from sqlalchemy import ForeignKey, String, Text, Enum
+from datetime import datetime
+
+from sqlalchemy import ForeignKey, String, Text, Enum, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core import db, enums
@@ -21,8 +23,11 @@ class User(db.TimeStampMixin):
     is_verified_email: Mapped[bool] = mapped_column(default=False)
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
+    middle_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     phone_number: Mapped[str] = mapped_column(String(100))
+    password_changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
     search_status: Mapped[enums.SearchStatus] = mapped_column(Enum(enums.SearchStatus))
+    search_region: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class RefreshToken(db.TimeStampMixin):

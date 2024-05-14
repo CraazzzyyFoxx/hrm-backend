@@ -1,4 +1,6 @@
 import secrets
+import time
+from datetime import datetime, UTC
 
 import jwt
 import sqlalchemy as sa
@@ -59,8 +61,8 @@ async def create(session: AsyncSession, user_create: schemas.UserCreate, safe: b
     password = user_dict.pop("password")
     user_dict["hashed_password"] = utils.hash_password(password)
     user_dict["email"] = email.lower()
-    user_dict["phone_number"] = user_dict["phone_number"][4:]
     user_dict["search_status"] = enums.SearchStatus.not_looking
+    user_dict["password_changed_at"] = datetime.now(UTC)
     created_user = models.User(**user_dict)
     session.add(created_user)
     await session.commit()
@@ -86,11 +88,14 @@ async def update(
     )
     if user_in.password:
         user.hashed_password = utils.hash_password(user_in.password)
-    query = sa.update(models.User).where(models.User.id == user.id).values(**update_data).returning(models.User)
-    result = await session.scalars(query)
-    user = result.one()
+        user.password_changed_at = datetime.now(UTC)
+
+    for k, v in update_data.items():
+        setattr(user, k, v)
+
+    session.add(user)
     await session.commit()
-    return user
+    return await get(session, user.id)
 
 
 async def delete(session: AsyncSession, user: models.User) -> None:
@@ -239,7 +244,7 @@ async def verify_access_token(session: AsyncSession, token: str | None) -> model
             config.app.access_token_secret,
             [config.app.access_token_audience],
         )
-        user = data["sub"]
+        user = data["sub"]["user"]
     except jwt.PyJWTError:
         return None
 
@@ -276,7 +281,7 @@ async def refresh_tokens(session: AsyncSession, token: str | None) -> tuple[str,
             config.app.refresh_token_secret,
             [config.app.access_token_audience],
         )
-        user = data["sub"]
+        user = data["sub"]["user"]
     except jwt.PyJWTError as e:
         raise errors.ApiHTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -302,7 +307,7 @@ async def refresh_tokens(session: AsyncSession, token: str | None) -> tuple[str,
     query = (sa.select(models.User).where(models.User.id == user["id"])).limit(1)
     result = await session.scalars(query)
     user = result.first()
-    query = sa.delete(models.RefreshToken).where(models.RefreshToken.token == token)
+    query = sa.delete(models.RefreshToken).where(models.RefreshToken.user_id == user.id)
     await session.execute(query)
     await session.commit()
     tokens = await create_access_token(session, user)
@@ -311,10 +316,13 @@ async def refresh_tokens(session: AsyncSession, token: str | None) -> tuple[str,
 
 async def create_access_token(session: AsyncSession, user: models.User) -> tuple[str, str]:
     token_data = {
-        "sub": schemas.UserRead.model_validate(user, from_attributes=True).model_dump(mode="json"),
+        "sub": {
+            "user": schemas.UserRead.model_validate(user, from_attributes=True).model_dump(mode="json"),
+            "created_at": time.time(),
+        },
         "aud": config.app.access_token_audience,
     }
-    access_token = jwt_utils.generate_jwt(token_data, config.app.access_token_secret, 24 * 3600 * 7)
+    access_token = jwt_utils.generate_jwt(token_data, config.app.access_token_secret, 24*3600)
     refresh_token = jwt_utils.generate_jwt(token_data, config.app.refresh_token_secret, 24 * 3600 * 30)
     query = sa.insert(models.RefreshToken).values(token=refresh_token, user_id=user.id)
     await session.execute(query)
@@ -346,8 +354,14 @@ async def write_token_api(session: AsyncSession, user: models.User) -> str:
     return token
 
 
-async def delete_refresh_token(session: AsyncSession, token: str) -> None:
-    query = sa.delete(models.RefreshToken).where(models.RefreshToken.token == token)
+async def delete_refresh_token(session: AsyncSession, user: models.User, token: str) -> None:
+    query = (
+        sa.delete(models.RefreshToken)
+        .where(
+            models.RefreshToken.token == token,
+            models.RefreshToken.user_id == user.id
+        )
+    )
     await session.execute(query)
     await session.commit()
     return

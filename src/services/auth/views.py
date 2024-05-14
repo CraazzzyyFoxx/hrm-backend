@@ -29,8 +29,8 @@ async def login(
         )
     token = await service.create_access_token(session, user)
     logger.info(f"User [email={user.email}] has logged in.")
-    resp = ORJSONResponse({"access_token": token[0], "refresh_token": token[1], "token_type": "bearer"})
-    resp.set_cookie("refresh_token", token[1], httponly=True, secure=True)
+    resp = ORJSONResponse({"access_token": token[0], "token_type": "bearer"})
+    resp.set_cookie("refresh_token", token[1], httponly=True)
     return resp
 
 
@@ -41,7 +41,7 @@ async def register(
 ):
     created_user = await service.create(session, user_create, safe=True)
     user = schemas.UserRead.model_validate(created_user)
-    logger.info(f"User [email={user.email} name={user.name}] has registered.")
+    logger.info(f"User [email={user.email}] has registered.")
     return user
 
 
@@ -82,17 +82,15 @@ async def reset_password(
 
 @router.post("/refresh-token")
 async def refresh_token(request: Request, session=Depends(get_async_session)):
-    token = request.cookies.get("refresh_token")
-    tokens = await service.refresh_tokens(session, token)
-    resp = ORJSONResponse({"access_token": tokens[0], "refresh_token": tokens[1], "token_type": "bearer"})
-    resp.set_cookie("refresh_token", tokens[1])
+    token = await service.refresh_tokens(session, request.cookies.get("refresh_token"))
+    resp = ORJSONResponse({"access_token": token[0], "token_type": "bearer"})
+    resp.set_cookie("refresh_token", token[1], httponly=True)
     return resp
 
 
 @router.post("/logout")
 async def logout(request: Request, user=Depends(flows.current_active), session=Depends(get_async_session)):
-    token = request.cookies.get("refresh_token")
-    await service.delete_refresh_token(session, token)
+    await service.delete_refresh_token(session, user, request.cookies.get("refresh_token"))
     resp = ORJSONResponse({"status": "success"})
     resp.delete_cookie("refresh_token")
     return resp
